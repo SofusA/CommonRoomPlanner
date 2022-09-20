@@ -56,5 +56,25 @@ pub async fn get_response() -> Result<impl warp::Reply, Infallible> {
         Err(err) => return Ok(format!("Unable to get service account: {}", err))
     };
 
-    return Ok("json_response".to_string());
+    let mut sheets = get_sheets(service_account, Some("token_cache.json"))
+        .await
+        .unwrap();
+
+    let objects = generate_sample_objects(5);
+
+    for obj in &objects {
+        serde_sheets::append_row(&mut sheets, document_id.as_str(), tab_id.as_str(), obj)
+            .await
+            .unwrap();
+    }
+
+    let returned: Vec<ExampleObject> =
+        serde_sheets::read_all(&mut sheets, document_id.as_str(), tab_id.as_str())
+            .await
+            .unwrap();
+
+
+    let json_response = serde_json::to_string(&returned).expect("Failed serialising json");
+
+    return Ok(json_response);
 }
