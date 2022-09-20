@@ -51,28 +51,32 @@ pub async fn get_response() -> Result<impl warp::Reply, Infallible> {
         Err(_) => return Ok("Error parsing tab name".to_string()),
     };
 
-    let service_account = match service_account_from_env(){
+    let service_account = match service_account_from_env() {
         Ok(res) => res,
-        Err(err) => return Ok(format!("Unable to get service account: {}", err))
+        Err(err) => return Ok(format!("Unable to get service account: {}", err)),
     };
 
-    let mut sheets = get_sheets(service_account, Some("token_cache.json"))
-        .await
-        .unwrap();
+    let mut sheets = match get_sheets(service_account, Some("token_cache.json")).await {
+        Ok(sheets) => sheets,
+        Err(err) => return Ok(format!("Error getting sheets: {}", err)),
+    };
 
     let objects = generate_sample_objects(5);
 
     for obj in &objects {
-        serde_sheets::append_row(&mut sheets, document_id.as_str(), tab_id.as_str(), obj)
+        match serde_sheets::append_row(&mut sheets, document_id.as_str(), tab_id.as_str(), obj)
             .await
-            .unwrap();
+        {
+            Ok(action) => action,
+            Err(err) => return Ok(format!("Error performing action: {}", err)),
+        }
     }
 
-    let returned: Vec<ExampleObject> =
-        serde_sheets::read_all(&mut sheets, document_id.as_str(), tab_id.as_str())
-            .await
-            .unwrap();
-
+    let returned: Vec<ExampleObject> = match serde_sheets::read_all(&mut sheets, document_id.as_str(), tab_id.as_str())
+            .await {
+                Ok(action) => action,
+                Err(err) => return Ok(format!("Error getting content: {}", err)),
+            }
 
     let json_response = serde_json::to_string(&returned).expect("Failed serialising json");
 
