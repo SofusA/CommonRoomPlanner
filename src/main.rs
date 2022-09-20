@@ -57,7 +57,10 @@ pub async fn get_response() -> Result<impl warp::Reply, Infallible> {
         Err(err) => return Ok(err.to_string()),
     };
 
-    let service_account = service_account_from_env().expect("Error reading service account");
+    let service_account = match service_account_from_env() {
+        Ok(acc) => acc,
+        Err(err) => return Ok(err.to_string()),
+    };
 
     let mut sheets = get_sheets(service_account, Some("token_cache.json"))
         .await
