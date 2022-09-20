@@ -31,6 +31,9 @@ jobs:
       - name: Build | Build
         run: cargo build --release --target x86_64-unknown-linux-musl
 
+      - name: Build | Tests
+        run: cargo test --release --target x86_64-unknown-linux-musl
+
       - name: Deploy | Move binary
         run: mv ./target/x86_64-unknown-linux-musl/release/handler .
 
