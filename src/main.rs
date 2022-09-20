@@ -61,12 +61,17 @@ pub async fn get_response() -> Result<impl warp::Reply, Infallible> {
         Err(_) => return Ok("Error parsing tab name".to_string()),
     };
 
-    let service_account = service_account_from_env().unwrap();
+    let service_account = match service_account_from_env() {
+        Ok(res) => res,
+        Err(err) => return Ok(format!("Error getting service account: {}", err))
+    };
 
-    let auth = ServiceAccountAuthenticator::builder(service_account)
+    let auth = match ServiceAccountAuthenticator::builder(service_account)
         .build()
-        .await
-        .unwrap();
+        .await {
+            Ok(res) => res,
+            Err(err) => return Ok(format!("Error auth: {}", err))
+        };
 
     let mut hub = Sheets::new(
         Client::builder().build(
@@ -155,7 +160,11 @@ async fn read_all<T: DeserializeOwned>(
         .doit()
         .await?;
 
-    let rows = value_range.values.unwrap();
+    let rows = match value_range.values{
+        Some(res) => res,
+        None => panic!()
+    };
+
     let mut wtr = WriterBuilder::new().from_writer(vec![]);
 
     for row in rows {
