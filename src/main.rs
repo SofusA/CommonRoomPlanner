@@ -51,6 +51,10 @@ pub async fn get_response() -> Result<impl warp::Reply, Infallible> {
         Err(_) => return Ok("Error parsing tab name".to_string()),
     };
 
+    let service_account = match service_account_from_env(){
+        Ok(res) => res,
+        Err(err) => return Ok(format!("Unable to get service account: {}", err))
+    };
 
     return Ok("json_response".to_string());
 }
