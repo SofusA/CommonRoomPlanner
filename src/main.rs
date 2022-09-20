@@ -52,5 +52,5 @@ pub async fn get_response() -> Result<impl warp::Reply, Infallible> {
     };
 
 
-    return Ok("works".to_string());
+    return Ok("json_response".to_string());
 }
