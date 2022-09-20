@@ -2,3 +2,6 @@ local.settings.json
 deploy.zip
 
 /target
+.env
+clientsecret.json
+token_cache.json
