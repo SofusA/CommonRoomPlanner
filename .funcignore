@@ -1,6 +1,9 @@
 .git*
 .vscode
 local.settings.json
-test
+tests
 .env
 token_cache.json
+src*
+target*
+.github*
