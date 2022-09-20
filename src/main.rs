@@ -42,12 +42,18 @@ async fn main() {
 
 pub async fn get_response() -> Result<impl warp::Reply, Infallible> {
     let document_id: String = match env::var("DOCUMENT_ID") {
-        Ok(val) => val.parse().expect("Document id not found"),
+        Ok(val) => match val.parse() {
+            Ok(parsed_val) => parsed_val,
+            Err(err) => return Ok(err.to_string()),
+        },
         Err(err) => return Ok(err.to_string()),
     };
 
     let tab_id: String = match env::var("TAB_NAME") {
-        Ok(val) => val.parse().expect("Tab name not found"),
+        Ok(val) => match val.parse() {
+            Ok(parsed_val) => parsed_val,
+            Err(err) => return Ok(err.to_string()),
+        },
         Err(err) => return Ok(err.to_string()),
     };
 
@@ -69,7 +75,6 @@ pub async fn get_response() -> Result<impl warp::Reply, Infallible> {
         serde_sheets::read_all(&mut sheets, document_id.as_str(), tab_id.as_str())
             .await
             .unwrap();
-
 
     let json_response = serde_json::to_string(&returned).expect("Failed serialising json");
 
