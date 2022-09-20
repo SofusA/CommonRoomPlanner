@@ -379,10 +379,11 @@ dependencies = [
 
 [[package]]
 name = "google-sheets4"
-version = "3.1.0+20220221"
+version = "4.0.1+20220221"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "fe9df2213e4db237d76634aee565a3df0c57d96c1f9eba238274eb725be9a212"
+checksum = "c28b8b66c9b20f30e098e77e3d7d7d561f5d1ac0b60efcaea12dfcd5e0932e52"
 dependencies = [
+ "http",
  "hyper",
  "hyper-rustls",
  "itertools",
@@ -390,6 +391,8 @@ dependencies = [
  "serde",
  "serde_derive",
  "serde_json",
+ "tokio",
+ "tower-service",
  "url 1.7.2",
  "yup-oauth2",
 ]
@@ -419,15 +422,19 @@ version = "0.1.0"
 dependencies = [
  "async-trait",
  "chrono",
+ "csv",
  "dotenv",
+ "google-sheets4",
+ "hyper-rustls",
  "itertools",
  "openssl-sys",
  "reqwest",
  "serde",
  "serde_json",
- "serde_sheets",
+ "thiserror",
  "tokio",
  "warp",
+ "yup-oauth2",
 ]
 
 [[package]]
@@ -1232,22 +1239,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "serde_sheets"
-version = "0.1.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "36049934fc7bd6041cc6e217adceba898b64f06bbf2a74041fc7d6c4f4d2195e"
-dependencies = [
- "csv",
- "google-sheets4",
- "hyper",
- "hyper-rustls",
- "serde",
- "serde_json",
- "thiserror",
- "yup-oauth2",
-]
-
-[[package]]
 name = "serde_urlencoded"
 version = "0.7.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1867,9 +1858,9 @@ dependencies = [
 
 [[package]]
 name = "yup-oauth2"
-version = "6.7.1"
+version = "7.0.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "22978c3967bbb8ba0c100106d83e652cf640b55d64b7e7d93d943fc0738d9453"
+checksum = "98748970d2ddf05253e6525810d989740334aa7509457864048a829902db76f3"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -1888,5 +1879,6 @@ dependencies = [
  "serde_json",
  "time 0.3.14",
  "tokio",
+ "tower-service",
  "url 2.3.1",
 ]

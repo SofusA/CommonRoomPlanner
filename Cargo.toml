@@ -18,7 +18,11 @@ warp = "0.3"
 openssl-sys = { version = "0.9", features = ["vendored"] }
 async-trait = "0.1"
 dotenv = "0.15.0"
-serde_sheets = "0.1.2"
+yup-oauth2 = "7.0.1"
+google-sheets4 = "4.0.1"
+hyper-rustls = "0.23.0"
+csv = "1.1.6"
+thiserror = "1.0.35"
 
 [features]
 vendored = ["openssl-sys/vendored"]
