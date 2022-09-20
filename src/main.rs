@@ -41,45 +41,5 @@ async fn main() {
 }
 
 pub async fn get_response() -> Result<impl warp::Reply, Infallible> {
-    let document_id: String = match env::var("DOCUMENT_ID") {
-        Ok(val) => match val.parse() {
-            Ok(parsed_val) => parsed_val,
-            Err(err) => return Ok(err.to_string()),
-        },
-        Err(err) => return Ok(err.to_string()),
-    };
-
-    let tab_id: String = match env::var("TAB_NAME") {
-        Ok(val) => match val.parse() {
-            Ok(parsed_val) => parsed_val,
-            Err(err) => return Ok(err.to_string()),
-        },
-        Err(err) => return Ok(err.to_string()),
-    };
-
-    let service_account = match service_account_from_env() {
-        Ok(acc) => acc,
-        Err(err) => return Ok(err.to_string()),
-    };
-
-    let mut sheets = get_sheets(service_account, Some("token_cache.json"))
-        .await
-        .unwrap();
-
-    let objects = generate_sample_objects(5);
-
-    for obj in &objects {
-        serde_sheets::append_row(&mut sheets, document_id.as_str(), tab_id.as_str(), obj)
-            .await
-            .unwrap();
-    }
-
-    let returned: Vec<ExampleObject> =
-        serde_sheets::read_all(&mut sheets, document_id.as_str(), tab_id.as_str())
-            .await
-            .unwrap();
-
-    let json_response = serde_json::to_string(&returned).expect("Failed serialising json");
-
-    return Ok(json_response);
+    return Ok("it is working");
 }
