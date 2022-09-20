@@ -76,7 +76,7 @@ pub async fn get_response() -> Result<impl warp::Reply, Infallible> {
             .await {
                 Ok(action) => action,
                 Err(err) => return Ok(format!("Error getting content: {}", err)),
-            }
+            };
 
     let json_response = serde_json::to_string(&returned).expect("Failed serialising json");
 
