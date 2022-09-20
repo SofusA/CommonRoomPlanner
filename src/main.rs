@@ -43,12 +43,12 @@ async fn main() {
 pub async fn get_response() -> Result<impl warp::Reply, Infallible> {
     let document_id: String = match env::var("DOCUMENT_ID") {
         Ok(val) => val.parse().expect("Document id not found"),
-        Err(_) => panic!(),
+        Err(err) => return Ok(err.to_string()),
     };
 
     let tab_id: String = match env::var("TAB_NAME") {
         Ok(val) => val.parse().expect("Tab name not found"),
-        Err(_) => panic!(),
+        Err(err) => return Ok(err.to_string()),
     };
 
     let service_account = service_account_from_env().expect("Error reading service account");
