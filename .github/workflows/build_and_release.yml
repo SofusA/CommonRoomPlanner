@@ -5,49 +5,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  test:
-    name: Build and Test
-    runs-on: ubuntu-20.04
-    steps:
-      - name: Setup | Checkout code
-        uses: actions/checkout@v2
-
-      - name: Setup | Rust toolchain
-        uses: actions-rs/toolchain@v1
-        with:
-          toolchain: stable
-          profile: minimal
-          target: x86_64-unknown-linux-musl
-
-      - id: cargo-cache
-        name: Cache
-        uses: Swatinem/rust-cache@v1
-        with:
-          key: release-azure-function
-
-      - name: Setup | musl tools
-        run: sudo apt install -y musl-tools
-
-      - name: Build | Tests
-        run: cargo test --release --target x86_64-unknown-linux-musl
-
-      - name: Test | Start
-        run: |
-          cargo run --release --target x86_64-unknown-linux-musl &
-          sleep 5
-
-      - name: Test | Make Request
-        id: httpTest
-        uses: fjogeleit/http-request-action@v1
-        with:
-          method: GET
-          url: "http://127.0.0.1:3000/api/booking"
-      - name: Test | Show Response
-        run: |
-          echo ${{ steps.httpTest.outputs.response }}
-
   release:
-    needs: test
     name: Deploy Azure Function
     runs-on: ubuntu-20.04
     steps:
