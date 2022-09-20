@@ -41,21 +41,7 @@ async fn main() {
 }
 
 pub async fn get_response() -> Result<impl warp::Reply, Infallible> {
-    let document_id: String = match env::var("DOCUMENT_ID") {
-        Ok(val) => match val.parse() {
-            Ok(parsed_val) => parsed_val,
-            Err(err) => return Ok(err.to_string()),
-        },
-        Err(err) => return Ok(err.to_string()),
-    };
-
-    let tab_id: String = match env::var("TAB_NAME") {
-        Ok(val) => match val.parse() {
-            Ok(parsed_val) => parsed_val,
-            Err(err) => return Ok(err.to_string()),
-        },
-        Err(err) => return Ok(err.to_string()),
-    };
+    let document_id: String = env::var("DOCUMENT_ID").expect("Unable to parse document id");
 
     return Ok(format!("Still working: {}", document_id).to_string());
 }
