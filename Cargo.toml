@@ -16,7 +16,6 @@ itertools = "0.10"
 warp = "0.3"
 openssl-sys = { version = "0.9", features = ["vendored"] }
 async-trait = "0.1"
-dotenv = "0.15"
 postgrest = "1.3"
 
 [features]

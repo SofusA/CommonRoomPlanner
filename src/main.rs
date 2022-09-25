@@ -1,12 +1,9 @@
-use dotenv::dotenv;
 use handler_lib::filters::filters;
 use std::{env, net::Ipv4Addr};
 use warp::Filter;
 
 #[tokio::main]
 async fn main() {
-    dotenv().ok();
-
     let routes = warp::path("api").and(
         filters::post_entry()
             .or(filters::delete_entry())
