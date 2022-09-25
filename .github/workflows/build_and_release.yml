@@ -82,7 +82,7 @@ jobs:
         run: mv ./target/x86_64-unknown-linux-musl/release/handler .
 
       - name: Deploy | Compress deploy package
-        run: zip -r deploy.zip handler v* host.json
+        run: zip -r deploy.zip handler ${{ secrets.END_POINT }}  host.json
 
       - name: Deploy | Authenticate
         uses: azure/login@v1
