@@ -161,7 +161,7 @@ impl Database for SupabaseDb {
         let resp = match client
             .from(database_table_name)
             .select("date, person")
-            .order("date.desc")
+            .order("date.asc")
             .limit(1)
             .single()
             .execute()
