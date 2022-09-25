@@ -8,7 +8,6 @@ jobs:
   test:
     name: Build and Test
     runs-on: ubuntu-20.04
-    environment: Deploy
     steps:
       - name: Setup | Checkout code
         uses: actions/checkout@v2
@@ -34,6 +33,10 @@ jobs:
 
       - name: Test | Start
         run: |
+          set END_POINT=${{ secrets.END_POINT }}
+          set DB_SECRET=${{ secrets.DB_SECRET }}
+          set DB_URL=${{ secrets.DB_URL }}
+          set DB_TABLE=${{ secrets.DB_TABLE }}
           cargo run --release --target x86_64-unknown-linux-musl &
           sleep 10
 
