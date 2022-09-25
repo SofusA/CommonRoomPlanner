@@ -7,6 +7,11 @@ on:
 jobs:
   test:
     name: Build and Test
+    env: 
+      END_POINT: ${{ secrets.END_POINT }}
+      DB_SECRET: ${{ secrets.DB_SECRET }}
+      DB_URL: ${{ secrets.DB_URL }}
+      DB_TABLE: ${{ secrets.DB_TABLE }}
     runs-on: ubuntu-20.04
     steps:
       - name: Setup | Checkout code
@@ -33,10 +38,6 @@ jobs:
 
       - name: Test | Start
         run: |
-          set END_POINT=${{ secrets.END_POINT }}
-          set DB_SECRET=${{ secrets.DB_SECRET }}
-          set DB_URL=${{ secrets.DB_URL }}
-          set DB_TABLE=${{ secrets.DB_TABLE }}
           cargo run --release --target x86_64-unknown-linux-musl &
           sleep 10
 
