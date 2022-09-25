@@ -34,7 +34,7 @@ jobs:
       - name: Test | Start
         run: |
           cargo run --release --target x86_64-unknown-linux-musl &
-          sleep 5
+          sleep 10
 
       - name: Test | Make Request
         id: httpTest
