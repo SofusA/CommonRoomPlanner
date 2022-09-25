@@ -1,2 +1,2 @@
-pub mod functions;
+pub mod filters;
 pub mod models;
