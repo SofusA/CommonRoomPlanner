@@ -8,7 +8,7 @@ use crate::models::entry::{DateFormat, Entry};
 use postgrest::Postgrest;
 
 pub fn post_entry() -> impl Filter<Extract = impl warp::Reply, Error = warp::Rejection> + Clone {
-    let endpoint = endpoint();
+    let endpoint = endpoint().unwrap();
 
     warp::path(endpoint)
         .and(warp::post())
@@ -17,7 +17,7 @@ pub fn post_entry() -> impl Filter<Extract = impl warp::Reply, Error = warp::Rej
 }
 
 pub fn delete_entry() -> impl Filter<Extract = impl warp::Reply, Error = warp::Rejection> + Clone {
-    let endpoint = endpoint();
+    let endpoint = endpoint().unwrap();
 
     warp::path(endpoint)
         .and(warp::delete())
@@ -27,7 +27,7 @@ pub fn delete_entry() -> impl Filter<Extract = impl warp::Reply, Error = warp::R
 
 pub fn get_next_entry() -> impl Filter<Extract = impl warp::Reply, Error = warp::Rejection> + Clone
 {
-    let endpoint = endpoint();
+    let endpoint = endpoint().unwrap();
 
     warp::path(endpoint)
         .and(warp::get())
@@ -78,54 +78,107 @@ fn dateformat_json_body() -> impl Filter<Extract = (DateFormat,), Error = warp::
 #[async_trait]
 impl Database for SupabaseDb {
     async fn delete(&self, date: DateFormat) -> Result<String, String> {
-        let client = Self::get_client();
+        let client = match Self::get_client() {
+            Ok(res) => res,
+            Err(err) => return Err(err),
+        };
 
-        let resp = client
-            .from(database_table_name())
+        let database_table_name = match database_table_name() {
+            Ok(res) => res,
+            Err(err) => return Err(err.to_string()),
+        };
+
+        let resp = match client
+            .from(database_table_name)
             .delete()
             .eq("date", date)
             .execute()
             .await
-            .expect("Error getting response");
+        {
+            Ok(res) => res,
+            Err(err) => return Err(format!("Error deleting entry: {}", err)),
+        };
 
         match resp.json::<Entry>().await {
-            Ok(res) => return Ok(serde_json::to_string(&res).unwrap()),
+            Ok(res) => {
+                return Ok(match serde_json::to_string(&res) {
+                    Ok(res) => res,
+                    Err(_) => "error serialising json".to_string(),
+                })
+            }
             Err(err) => return Err(format!("Error deleting booking: {}", err)),
         }
     }
 
     async fn add(&self, entry: Entry) -> Result<String, String> {
-        let client = Self::get_client();
+        let client = match Self::get_client() {
+            Ok(res) => res,
+            Err(err) => return Err(err),
+        };
 
-        let resp = client
-            .from(database_table_name())
-            .insert(format!("[{}]", serde_json::to_string(&entry).unwrap()))
+        let serialised_entry = match serde_json::to_string(&entry) {
+            Ok(res) => res,
+            Err(err) => return Err(err.to_string()),
+        };
+
+        let database_table_name = match database_table_name() {
+            Ok(res) => res,
+            Err(err) => return Err(err.to_string()),
+        };
+
+        let resp = match client
+            .from(database_table_name)
+            .insert(format!("[{}]", serialised_entry))
             .execute()
             .await
-            .expect("Error getting response");
+        {
+            Ok(res) => res,
+            Err(err) => return Err(format!("Error deleting entry: {}", err)),
+        };
 
         match resp.json::<Entry>().await {
-            Ok(res) => return Ok(serde_json::to_string(&res).unwrap()),
-            Err(err) => return Err(format!("Error adding booking: {}", err)),
+            Ok(res) => {
+                return Ok(match serde_json::to_string(&res) {
+                    Ok(res) => res,
+                    Err(_) => "error serialising json".to_string(),
+                })
+            }
+            Err(err) => return Err(format!("Error deleting booking: {}", err)),
         }
     }
 
     async fn get_latest(&self) -> Result<String, String> {
-        let client = Self::get_client();
+        let client = match Self::get_client() {
+            Ok(res) => res,
+            Err(err) => return Err(err),
+        };
 
-        let resp = client
-            .from(database_table_name())
+        let database_table_name = match database_table_name() {
+            Ok(res) => res,
+            Err(err) => return Err(err.to_string()),
+        };
+
+        let resp = match client
+            .from(database_table_name)
             .select("date, person")
             .order("date.desc")
             .limit(1)
             .single()
             .execute()
             .await
-            .expect("Error getting response");
+        {
+            Ok(res) => res,
+            Err(err) => return Err(format!("Error deleting entry: {}", err)),
+        };
 
         match resp.json::<Entry>().await {
-            Ok(res) => return Ok(serde_json::to_string(&res).unwrap()),
-            Err(err) => return Err(format!("Error retrieving latest booking: {}", err)),
+            Ok(res) => {
+                return Ok(match serde_json::to_string(&res) {
+                    Ok(res) => res,
+                    Err(_) => "error serialising json".to_string(),
+                })
+            }
+            Err(err) => return Err(format!("Error deleting booking: {}", err)),
         }
     }
 
@@ -133,7 +186,17 @@ impl Database for SupabaseDb {
         return SupabaseDb {};
     }
 
-    fn get_client() -> Postgrest {
-        return Postgrest::new(database_url()).insert_header("apikey", database_secret());
+    fn get_client() -> Result<Postgrest, String> {
+        let url = match database_url() {
+            Ok(res) => res,
+            Err(err) => return Err(err),
+        };
+
+        let database_secret = match database_secret() {
+            Ok(res) => res,
+            Err(err) => return Err(err.to_string()),
+        };
+
+        return Ok(Postgrest::new(url).insert_header("apikey", database_secret));
     }
 }

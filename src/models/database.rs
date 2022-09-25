@@ -7,7 +7,7 @@ pub trait Database {
     async fn delete(&self, date: DateFormat) -> Result<String, String>;
     async fn add(&self, entry: Entry) -> Result<String, String>;
     async fn get_latest(&self) -> Result<String, String>;
-    fn get_client() -> Postgrest;
+    fn get_client() -> Result<Postgrest, String>;
 
     fn new() -> Self;
 }

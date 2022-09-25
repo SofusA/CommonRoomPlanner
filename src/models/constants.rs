@@ -1,29 +1,29 @@
 use std::env;
 
-pub fn endpoint() -> String {
-    return match env::var("END_POINT") {
-        Ok(val) => val.parse().expect("Error parsing endpoint"),
-        Err(err) => panic!("Error reading endpoint: {}", err),
+pub fn endpoint() -> Result<String, String> {
+    match env::var("END_POINT") {
+        Ok(res) => return Ok(res),
+        Err(err) => return Err(format!("Error parsing endpoint: {}", err)),
     };
 }
 
-pub fn database_secret() -> String {
-    return match env::var("DB_SECRET") {
-        Ok(val) => val.parse().expect("Error parsing database secret"),
-        Err(err) => panic!("Error reading database secret: {}", err),
+pub fn database_secret() -> Result<String, String> {
+    match env::var("DB_SECRET") {
+        Ok(res) => return Ok(res),
+        Err(err) => return Err(format!("Error parsing database secret: {}", err)),
     };
 }
 
-pub fn database_table_name() -> String {
-    return match env::var("DB_TABLE") {
-        Ok(val) => val.parse().expect("Error parsing database table name"),
-        Err(err) => panic!("Error reading database table name: {}", err),
+pub fn database_table_name() -> Result<String, String> {
+    match env::var("DB_TABLE") {
+        Ok(res) => return Ok(res),
+        Err(err) => return Err(format!("Error parsing database table name: {}", err)),
     };
 }
 
-pub fn database_url() -> String {
-    return match env::var("DB_URL") {
-        Ok(val) => val.parse().expect("Error parsing database URL"),
-        Err(err) => panic!("Error reading database URL: {}", err),
+pub fn database_url() -> Result<String, String> {
+    match env::var("DB_URL") {
+        Ok(res) => return Ok(res),
+        Err(err) => return Err(format!("Error parsing database url: {}", err)),
     };
 }
