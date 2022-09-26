@@ -12,6 +12,7 @@ jobs:
       DB_SECRET: ${{ secrets.DB_SECRET }}
       DB_URL: ${{ secrets.DB_URL }}
       DB_TABLE: ${{ secrets.DB_TABLE }}
+      FUNCTIONS_CUSTOMHANDLER_PORT: 3000
     runs-on: ubuntu-20.04
     steps:
       - name: Setup | Checkout code

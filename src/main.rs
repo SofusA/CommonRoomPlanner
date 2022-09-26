@@ -1,7 +1,11 @@
-use handler_lib::{filters::filters::{post_json, delete_json, handle_post_entry, handle_get_next_entry, handle_delete_entry}, models::constants::endpoint};
+use handler_lib::{
+    filters::filters::{
+        delete_json, handle_delete_entry, handle_get_next_entry, handle_post_entry, post_json,
+    },
+    models::constants::endpoint,
+};
 use std::{env, net::Ipv4Addr};
 use warp::Filter;
-
 
 #[tokio::main]
 async fn main() {
@@ -26,7 +30,7 @@ async fn main() {
         .and(warp::path::end())
         .and(delete_json())
         .and_then(handle_delete_entry);
-    
+
     let routes = add_items.or(get_items).or(delete_item);
 
     let port: u16 = match env::var("FUNCTIONS_CUSTOMHANDLER_PORT") {

@@ -6,4 +6,10 @@ pub struct Entry {
     pub person: String
 }
 
+#[derive(Debug, Deserialize, Serialize, Clone)]
+pub struct EntryId {
+    pub date: String,
+}
+
+
 pub type DateFormat = String;
