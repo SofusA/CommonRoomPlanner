@@ -42,15 +42,36 @@ jobs:
           cargo run --release --target x86_64-unknown-linux-musl &
           sleep 10
 
-      - name: Test | Make Request
-        id: httpTest
+      - name: Test | Make POST Request
+        id: httpPostTest
+        uses: fjogeleit/http-request-action@v1
+        with:
+          method: POST
+          url: "http://127.0.0.1:3000/api/booking"
+          customHeaders: '{"Content-Type": "application/json"}'
+          data: '{"person": "test", "date": "2122-10-20"}'
+
+      - name: Test | Make GET Request
+        id: httpGetTest
         uses: fjogeleit/http-request-action@v1
         with:
           method: GET
           url: "http://127.0.0.1:3000/api/booking"
+
+      - name: Test | Make DELETE Request
+        id: httpDeleteTest
+        uses: fjogeleit/http-request-action@v1
+        with:
+          method: DELETE
+          url: "http://127.0.0.1:3000/api/booking"
+          customHeaders: '{"Content-Type": "application/json"}'
+          data: '{"person": "test", "date": "2122-10-20"}'
+
       - name: Test | Show Response
         run: |
-          echo ${{ steps.httpTest.outputs.response }}
+          echo ${{ steps.httpPostTest.outputs.response }}
+          echo ${{ steps.httpGetTest.outputs.response }}
+          echo ${{ steps.httpDeleteTest.outputs.response }}
 
   release:
     needs: test
@@ -98,13 +119,33 @@ jobs:
     name: Test
     runs-on: ubuntu-20.04
     steps:
-    - name: Deploy Test | Make Request
-      id: httpTest
-      uses: fjogeleit/http-request-action@v1
-      with:
-        method: GET
-        url: "https://${{ secrets.AZURE_APP_NAME }}.azurewebsites.net/api/booking"
-        timeout: 30000
-    - name: Deploy Test | Show Response
-      run: |
-        echo ${{ steps.httpTest.outputs.response }}
+      - name: Deploy Test | Make POST Request
+        id: httpPostTest
+        uses: fjogeleit/http-request-action@v1
+        with:
+          method: POST
+          url: "https://${{ secrets.AZURE_APP_NAME }}.azurewebsites.net/api/booking"
+          customHeaders: '{"Content-Type": "application/json"}'
+          data: '{"person": "test", "date": "2122-10-20"}'
+
+      - name: Deploy Test | Make GET Request
+        id: httpGetTest
+        uses: fjogeleit/http-request-action@v1
+        with:
+          method: GET
+          url: "https://${{ secrets.AZURE_APP_NAME }}.azurewebsites.net/api/booking"
+
+      - name: Deploy Test | Make DELETE Request
+        id: httpDeleteTest
+        uses: fjogeleit/http-request-action@v1
+        with:
+          method: DELETE
+          url: "https://${{ secrets.AZURE_APP_NAME }}.azurewebsites.net/api/booking"
+          customHeaders: '{"Content-Type": "application/json"}'
+          data: '{"person": "test", "date": "2122-10-20"}'
+
+      - name: Deploy Test | Show Response
+        run: |
+          echo ${{ steps.httpPostTest.outputs.response }}
+          echo ${{ steps.httpGetTest.outputs.response }}
+          echo ${{ steps.httpDeleteTest.outputs.response }}
