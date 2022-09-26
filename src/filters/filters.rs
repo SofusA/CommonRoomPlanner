@@ -2,9 +2,9 @@ use async_trait::async_trait;
 use reqwest::StatusCode;
 use warp::Filter;
 
-use crate::models::constants::{database_secret, database_table_name, database_url};
+use crate::models::constants::*;
 use crate::models::database::*;
-use crate::models::entry::{Entry, EntryId};
+use crate::models::entry::*;
 use postgrest::Postgrest;
 
 pub fn delete_json() -> impl Filter<Extract = (EntryId,), Error = warp::Rejection> + Clone {
@@ -16,8 +16,6 @@ pub fn post_json() -> impl Filter<Extract = (Entry,), Error = warp::Rejection> +
 }
 
 pub async fn handle_post_entry(entry: Entry) -> Result<impl warp::Reply, warp::Rejection> {
-    println!("Received post request: {:?}", entry);
-
     let database: SupabaseDb = Database::new();
 
     let database_response = database.add(entry).await;
@@ -31,10 +29,10 @@ pub async fn handle_post_entry(entry: Entry) -> Result<impl warp::Reply, warp::R
 pub async fn handle_delete_entry(entry_id: EntryId) -> Result<impl warp::Reply, warp::Rejection> {
     let database: SupabaseDb = Database::new();
 
-    let database_response = database.delete(entry_id).await;
+    let database_response = database.delete(entry_id.date).await;
 
     match database_response {
-        Ok(response) => return Ok(warp::reply::with_status(response, StatusCode::OK)),
+        Ok(response) => return Ok(warp::reply::with_status(format!("Response from database: {}", response), response)),
         Err(err) => return Ok(warp::reply::with_status(err, StatusCode::BAD_REQUEST)),
     }
 }
@@ -52,7 +50,7 @@ pub async fn handle_get_next_entry() -> Result<impl warp::Reply, warp::Rejection
 
 #[async_trait]
 impl Database for SupabaseDb {
-    async fn delete(&self, entry_id: EntryId) -> Result<String, String> {
+    async fn delete(&self, entry_id: DateFormat) -> Result<StatusCode, String> {
         let client = match Self::get_client() {
             Ok(res) => res,
             Err(err) => return Err(err),
@@ -66,7 +64,7 @@ impl Database for SupabaseDb {
         let resp = match client
             .from(database_table_name)
             .delete()
-            .eq("date", entry_id.date)
+            .eq("date", entry_id)
             .execute()
             .await
         {
@@ -74,15 +72,7 @@ impl Database for SupabaseDb {
             Err(err) => return Err(format!("Error from Supabase: {}", err)),
         };
 
-        match resp.json::<Entry>().await {
-            Ok(res) => {
-                return Ok(match serde_json::to_string(&res) {
-                    Ok(res) => res,
-                    Err(_) => "error serialising json".to_string(),
-                })
-            }
-            Err(err) => return Err(format!("Error deleting booking: {}", err)),
-        }
+        return Ok(resp.status());
     }
 
     async fn add(&self, entry: Entry) -> Result<StatusCode, String> {

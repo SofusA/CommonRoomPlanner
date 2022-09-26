@@ -13,8 +13,8 @@ content-type: application/json; charset=UTF-8
 ###
 
 Delete http://localhost:3001/api/booking HTTP/1.1
-
 content-type: application/json; charset=UTF-8
+
 {
-    "date": "2022-10-03",
+    "date": "2022-10-03"
 }

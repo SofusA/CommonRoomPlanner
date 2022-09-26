@@ -8,7 +8,7 @@ pub struct Entry {
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct EntryId {
-    pub date: String,
+    pub date: DateFormat,
 }
 
 
