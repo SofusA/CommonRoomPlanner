@@ -1,18 +1,37 @@
-use handler_lib::filters::filters;
+use handler_lib::{filters::filters::{post_json, delete_json, handle_post_entry, handle_get_next_entry, handle_delete_entry}, models::constants::endpoint};
 use std::{env, net::Ipv4Addr};
 use warp::Filter;
 
+
 #[tokio::main]
 async fn main() {
-    let routes = warp::path("api").and(
-        filters::post_entry()
-            .or(filters::delete_entry())
-            .or(filters::get_next_entry()),
-    );
+    let endpoint = endpoint().unwrap();
+
+    let add_items = warp::post()
+        .and(warp::path("api"))
+        .and(warp::path(endpoint.clone()))
+        .and(warp::path::end())
+        .and(post_json())
+        .and_then(handle_post_entry);
+
+    let get_items = warp::get()
+        .and(warp::path("api"))
+        .and(warp::path(endpoint.clone()))
+        .and(warp::path::end())
+        .and_then(handle_get_next_entry);
+
+    let delete_item = warp::delete()
+        .and(warp::path("api"))
+        .and(warp::path(endpoint.clone()))
+        .and(warp::path::end())
+        .and(delete_json())
+        .and_then(handle_delete_entry);
+    
+    let routes = add_items.or(get_items).or(delete_item);
 
     let port: u16 = match env::var("FUNCTIONS_CUSTOMHANDLER_PORT") {
         Ok(val) => val.parse().expect("Custom Handler port is not a number!"),
-        Err(_) => 3000,
+        Err(_) => 3001,
     };
 
     warp::serve(routes).run((Ipv4Addr::LOCALHOST, port)).await

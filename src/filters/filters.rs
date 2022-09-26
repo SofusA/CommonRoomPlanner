@@ -1,40 +1,22 @@
 use async_trait::async_trait;
 use reqwest::StatusCode;
-use warp::{Filter, Rejection};
+use warp::Filter;
 
-use crate::models::constants::{database_secret, database_table_name, database_url, endpoint};
+use crate::models::constants::{database_secret, database_table_name, database_url};
 use crate::models::database::*;
 use crate::models::entry::{DateFormat, Entry};
 use postgrest::Postgrest;
 
-pub fn post_entry() -> impl Filter<Extract = impl warp::Reply, Error = warp::Rejection> + Clone {
-    let endpoint = endpoint().unwrap();
-
-    warp::path(endpoint)
-        .and(warp::post())
-        .and(entry_json_body())
-        .and_then(handle_post_entry)
+pub fn delete_json() -> impl Filter<Extract = (DateFormat, ), Error = warp::Rejection> + Clone {
+    warp::body::content_length_limit(1024 * 16).and(warp::body::json())
 }
 
-pub fn delete_entry() -> impl Filter<Extract = impl warp::Reply, Error = warp::Rejection> + Clone {
-    let endpoint = endpoint().unwrap();
 
-    warp::path(endpoint)
-        .and(warp::delete())
-        .and(dateformat_json_body())
-        .and_then(handle_delete_entry)
+pub fn post_json() -> impl Filter<Extract = (Entry, ), Error = warp::Rejection> + Clone {
+    warp::body::content_length_limit(1024 * 16).and(warp::body::json())
 }
 
-pub fn get_next_entry() -> impl Filter<Extract = impl warp::Reply, Error = warp::Rejection> + Clone
-{
-    let endpoint = endpoint().unwrap();
-
-    warp::path(endpoint)
-        .and(warp::get())
-        .and_then(handle_get_next_entry)
-}
-
-pub async fn handle_post_entry(entry: Entry) -> Result<impl warp::Reply, Rejection> {
+pub async fn handle_post_entry(entry: Entry) -> Result<impl warp::Reply, warp::Rejection> {
     let database: SupabaseDb = Database::new();
 
     let database_response = database.add(entry).await;
@@ -45,34 +27,26 @@ pub async fn handle_post_entry(entry: Entry) -> Result<impl warp::Reply, Rejecti
     }
 }
 
-pub async fn handle_delete_entry(entry_date: DateFormat) -> Result<impl warp::Reply, Rejection> {
+pub async fn handle_delete_entry(entry_date: DateFormat) -> Result<impl warp::Reply, warp::Rejection>  {
     let database: SupabaseDb = Database::new();
 
     let database_response = database.delete(entry_date).await;
 
     match database_response {
-        Ok(response) => return Ok(warp::reply::with_status(response, StatusCode::CREATED)),
+        Ok(response) => return Ok(warp::reply::with_status(response, StatusCode::OK)),
         Err(_) => return Err(warp::reject()),
     }
 }
 
-pub async fn handle_get_next_entry() -> Result<impl warp::Reply, Rejection> {
+pub async fn handle_get_next_entry() -> Result<impl warp::Reply, warp::Rejection> {
     let database: SupabaseDb = Database::new();
 
     let database_response = database.get_latest().await;
 
     match database_response {
-        Ok(response) => return Ok(warp::reply::with_status(response, StatusCode::CREATED)),
+        Ok(response) => return Ok(warp::reply::with_status(response, StatusCode::OK)),
         Err(_) => return Err(warp::reject()),
     }
-}
-
-fn entry_json_body() -> impl Filter<Extract = (Entry,), Error = warp::Rejection> + Clone {
-    warp::body::content_length_limit(1024 * 16).and(warp::body::json())
-}
-
-fn dateformat_json_body() -> impl Filter<Extract = (DateFormat,), Error = warp::Rejection> + Clone {
-    warp::body::content_length_limit(1024 * 16).and(warp::body::json())
 }
 
 #[async_trait]

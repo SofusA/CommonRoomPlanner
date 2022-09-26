@@ -1,0 +1,19 @@
+GET http://localhost:3001/api/booking HTTP/1.1
+
+###
+
+POST http://localhost:3001/api/booking HTTP/1.1
+content-type: application/json
+
+{
+    "person": "test",
+    "date": "2022-10-02"
+}
+
+###
+
+Delete http://localhost:3001/api/booking HTTP/1.1
+content-type: application/json
+{
+    "date": "2022-10-02"
+}
