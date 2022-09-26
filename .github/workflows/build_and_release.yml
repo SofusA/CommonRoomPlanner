@@ -49,7 +49,7 @@ jobs:
           method: POST
           url: "http://127.0.0.1:3000/api/booking"
           customHeaders: '{"Content-Type": "application/json"}'
-          data: '{"person": "test", "date": "2122-10-20"}'
+          data: '{"person": "test", "date": ${{ date '+%Y-%m-%d' }}}'
 
       - name: Test | Make GET Request
         id: httpGetTest
@@ -65,7 +65,7 @@ jobs:
           method: DELETE
           url: "http://127.0.0.1:3000/api/booking"
           customHeaders: '{"Content-Type": "application/json"}'
-          data: '{"person": "test", "date": "2122-10-20"}'
+          data: '{"person": "test", "date": ${{ date '+%Y-%m-%d' }}}'
 
       - name: Test | Show Response
         run: |
@@ -126,7 +126,7 @@ jobs:
           method: POST
           url: "https://${{ secrets.AZURE_APP_NAME }}.azurewebsites.net/api/booking"
           customHeaders: '{"Content-Type": "application/json"}'
-          data: '{"person": "test", "date": "2122-10-20"}'
+          data: '{"person": "test", "date": ${{ date '+%Y-%m-%d' }}}'
 
       - name: Deploy Test | Make GET Request
         id: httpGetTest
@@ -142,7 +142,7 @@ jobs:
           method: DELETE
           url: "https://${{ secrets.AZURE_APP_NAME }}.azurewebsites.net/api/booking"
           customHeaders: '{"Content-Type": "application/json"}'
-          data: '{"person": "test", "date": "2122-10-20"}'
+          data: '{"person": "test", "date": ${{ date '+%Y-%m-%d' }}}'
 
       - name: Deploy Test | Show Response
         run: |
