@@ -10,6 +10,6 @@ pub struct Entry {
 pub struct EntryId {
     pub date: DateFormat,
 }
-
+ 
 
 pub type DateFormat = String;

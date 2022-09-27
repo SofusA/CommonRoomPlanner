@@ -1,4 +1,5 @@
 use async_trait::async_trait;
+use chrono::Duration;
 use reqwest::StatusCode;
 use warp::Filter;
 
@@ -40,7 +41,7 @@ pub async fn handle_delete_entry(entry_id: EntryId) -> Result<impl warp::Reply, 
 pub async fn handle_get_next_entry() -> Result<impl warp::Reply, warp::Rejection> {
     let database: SupabaseDb = Database::new();
 
-    let database_response = database.get_latest().await;
+    let database_response = database.get_next_week().await;
 
     match database_response {
         Ok(response) => return Ok(warp::reply::with_status(response, StatusCode::OK)),
@@ -105,7 +106,7 @@ impl Database for SupabaseDb {
 
     }
 
-    async fn get_latest(&self) -> Result<String, String> {
+    async fn get_next_week(&self) -> Result<String, String> {
         let client = match Self::get_client() {
             Ok(res) => res,
             Err(err) => return Err(err),
@@ -116,12 +117,15 @@ impl Database for SupabaseDb {
             Err(err) => return Err(err.to_string()),
         };
 
+        let today = chrono::offset::Utc::now();
+        let next_week = today + Duration::days(7);
+
         let resp = match client
             .from(database_table_name)
             .select("date, person")
+            .gt("date", today.format("%Y-%m-%d").to_string())
+            .lt("date", next_week.format("%Y-%m-%d").to_string())
             .order("date.asc")
-            .limit(1)
-            .single()
             .execute()
             .await
         {
@@ -129,7 +133,7 @@ impl Database for SupabaseDb {
             Err(err) => return Err(format!("Error from Supabase: {}", err)),
         };
 
-        match resp.json::<Entry>().await {
+        match resp.json::<Vec<Entry>>().await {
             Ok(res) => {
                 return Ok(match serde_json::to_string(&res) {
                     Ok(res) => res,
