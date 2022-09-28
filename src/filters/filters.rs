@@ -123,7 +123,7 @@ impl Database for SupabaseDb {
         let resp = match client
             .from(database_table_name)
             .select("date, person")
-            .gt("date", today.format("%Y-%m-%d").to_string())
+            .gte("date", today.format("%Y-%m-%d").to_string())
             .lt("date", next_week.format("%Y-%m-%d").to_string())
             .order("date.asc")
             .execute()
