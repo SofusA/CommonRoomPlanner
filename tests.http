@@ -1,4 +1,4 @@
-GET http://localhost:3001/api/booking HTTP/1.1
+GET http://localhost:3001/api/booking?weeks=50 HTTP/1.1
 
 ###
 
@@ -6,7 +6,7 @@ POST http://localhost:3001/api/booking HTTP/1.1
 content-type: application/json; charset=UTF-8
 
 {
-    "person": "test2",
+    "person": "test",
     "date": "2022-10-03"
 }
 

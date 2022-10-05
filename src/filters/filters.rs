@@ -5,7 +5,7 @@ use warp::Filter;
 
 use crate::models::constants::*;
 use crate::models::database::*;
-use crate::models::entry::*;
+use crate::models::interfaces::*;
 use postgrest::Postgrest;
 
 pub fn delete_json() -> impl Filter<Extract = (EntryId,), Error = warp::Rejection> + Clone {
@@ -38,10 +38,10 @@ pub async fn handle_delete_entry(entry_id: EntryId) -> Result<impl warp::Reply, 
     }
 }
 
-pub async fn handle_get_next_entry() -> Result<impl warp::Reply, warp::Rejection> {
+pub async fn handle_get_next_entry(request: WeekRequest) -> Result<impl warp::Reply, warp::Rejection> {
     let database: SupabaseDb = Database::new();
 
-    let database_response = database.get_next_week().await;
+    let database_response = database.get_next_weeks(request).await;
 
     match database_response {
         Ok(response) => return Ok(warp::reply::with_status(response, StatusCode::OK)),
@@ -106,7 +106,7 @@ impl Database for SupabaseDb {
 
     }
 
-    async fn get_next_week(&self) -> Result<String, String> {
+    async fn get_next_weeks(&self, request: WeekRequest) -> Result<String, String> {
         let client = match Self::get_client() {
             Ok(res) => res,
             Err(err) => return Err(err),
@@ -118,7 +118,7 @@ impl Database for SupabaseDb {
         };
 
         let today = chrono::offset::Utc::now();
-        let next_week = today + Duration::days(7);
+        let next_week = today + Duration::weeks(request.weeks);
 
         let resp = match client
             .from(database_table_name)

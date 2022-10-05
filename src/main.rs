@@ -2,7 +2,7 @@ use handler_lib::{
     filters::filters::{
         delete_json, handle_delete_entry, handle_get_next_entry, handle_post_entry, post_json,
     },
-    models::constants::endpoint,
+    models::{constants::endpoint, interfaces::WeekRequest},
 };
 use std::{env, net::Ipv4Addr};
 use warp::Filter;
@@ -22,6 +22,7 @@ async fn main() {
         .and(warp::path("api"))
         .and(warp::path(endpoint.clone()))
         .and(warp::path::end())
+        .and(warp::query::<WeekRequest>())
         .and_then(handle_get_next_entry);
 
     let delete_item = warp::delete()
