@@ -1,11 +1,9 @@
-use chrono::DateTime;
-use chrono::Utc;
+use chrono::Duration;
 use reqwest::StatusCode;
 use warp::Filter;
 
 use crate::models::database::*;
 use crate::models::interfaces::*;
-use crate::models::time_provider::TimeProvider;
 
 use crate::supabase::supabase::SupabaseDb;
 
@@ -42,22 +40,13 @@ pub async fn handle_delete_entry(entry_id: EntryId) -> Result<impl warp::Reply, 
 pub async fn handle_get_next_entry(request: WeekRequest) -> Result<impl warp::Reply, warp::Rejection> {
     let database: SupabaseDb = Database::new();
 
-    let database_response = database.get_next_weeks(TimeService::get_current_time(), request).await;
+    let today = chrono::offset::Utc::now();
+    let to = today + Duration::weeks(request.weeks);
+
+    let database_response = database.get_entries(today, to).await;
 
     match database_response {
         Ok(response) => return Ok(warp::reply::with_status(response, StatusCode::OK)),
         Err(err) => return Ok(warp::reply::with_status(err, StatusCode::BAD_REQUEST)),
-    }
-}
-
-struct TimeService {}
-
-impl TimeProvider for TimeService {
-    fn get_current_time() -> DateTime<Utc> {
-        return chrono::offset::Utc::now();
-    }
-
-    fn new() -> TimeService {
-        return TimeService {};
     }
 }

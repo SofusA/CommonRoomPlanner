@@ -1,6 +1,5 @@
 use async_trait::async_trait;
 use chrono::DateTime;
-use chrono::Duration;
 use chrono::Utc;
 use reqwest::StatusCode;
 use postgrest::Postgrest;
@@ -70,7 +69,7 @@ impl Database for SupabaseDb {
 
     }
 
-    async fn get_next_weeks(&self, from: DateTime<Utc>, to: WeekRequest) -> Result<String, String> {
+    async fn get_entries(&self, from: DateTime<Utc>, to: DateTime<Utc>) -> Result<String, String> {
         let client = match Self::get_client() {
             Ok(res) => res,
             Err(err) => return Err(err),
@@ -81,13 +80,11 @@ impl Database for SupabaseDb {
             Err(err) => return Err(err.to_string()),
         };
 
-        let next_week = from + Duration::weeks(to.weeks);
-
         let resp = match client
             .from(database_table_name)
             .select("date, person")
             .gte("date", from.format("%Y-%m-%d").to_string())
-            .lt("date", next_week.format("%Y-%m-%d").to_string())
+            .lte("date", to.format("%Y-%m-%d").to_string())
             .order("date.asc")
             .execute()
             .await
