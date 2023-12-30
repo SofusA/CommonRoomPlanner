@@ -7,153 +7,27 @@ on:
 jobs:
   test:
     name: Build and Test
-    env: 
-      END_POINT: ${{ secrets.END_POINT }}
-      DB_SECRET: ${{ secrets.DB_SECRET }}
-      DB_URL: ${{ secrets.DB_URL }}
-      DB_TABLE: ${{ secrets.DB_TABLE }}
-      FUNCTIONS_CUSTOMHANDLER_PORT: 3000
     runs-on: ubuntu-20.04
     steps:
       - name: Setup | Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Setup | Rust toolchain
         uses: actions-rs/toolchain@v1
         with:
           toolchain: stable
-          profile: minimal
-          target: x86_64-unknown-linux-musl
 
-      - id: cargo-cache
-        name: Cache
-        uses: Swatinem/rust-cache@v1
+      - name: Build | Test
+        env:
+            DATABASE_SECRET: ${{ secrets.DATABASE_SECRET}}
+            DATABASE_URL: ${{ secrets.DATABASE_URL}}
+        run: cargo test --release       
+
+      - name: Build and publish "latest" Docker image
+        uses: VaultVulp/gp-docker-action@1.6.0
         with:
-          key: release-azure-function
+          github-token: ${{ secrets.GITHUB_TOKEN }} 
+          image-name: ${{ github.event.repository.name }} 
+          dockerfile: Containerfile
 
-      - name: Setup | musl tools
-        run: sudo apt install -y musl-tools
 
-      - name: Build | Tests
-        run: cargo test --release --target x86_64-unknown-linux-musl
-
-      - name: Test | Start
-        run: |
-          cargo run --release --target x86_64-unknown-linux-musl &
-          sleep 10
-
-      - name: Test | Get current date
-        id: date
-        run: echo "::set-output name=date::$(date +'%Y-%m-%d')"
-
-      - name: Test | Make POST Request
-        id: httpPostTest
-        uses: fjogeleit/http-request-action@v1
-        with:
-          method: POST
-          url: "http://127.0.0.1:3000/api/booking"
-          customHeaders: '{"Content-Type": "application/json"}'
-          data: '{"person": "test", "date": "${{ steps.date.outputs.date }}"}'
-
-      - name: Test | Make GET Request
-        id: httpGetTest
-        uses: fjogeleit/http-request-action@v1
-        with:
-          method: GET
-          url: "http://127.0.0.1:3000/api/booking?weeks=50"
-
-      - name: Test | Make DELETE Request
-        id: httpDeleteTest
-        uses: fjogeleit/http-request-action@v1
-        with:
-          method: DELETE
-          url: "http://127.0.0.1:3000/api/booking"
-          customHeaders: '{"Content-Type": "application/json"}'
-          data: '{"person": "test", "date": "${{ steps.date.outputs.date }}"}'
-
-      - name: Test | Show Response
-        run: |
-          echo ${{ steps.httpPostTest.outputs.response }}
-          echo ${{ steps.httpGetTest.outputs.response }}
-          echo ${{ steps.httpDeleteTest.outputs.response }}
-
-  release:
-    needs: test
-    name: Deploy Azure Function
-    runs-on: ubuntu-20.04
-    steps:
-      - name: Setup | Checkout code
-        uses: actions/checkout@v2
-
-      - name: Setup | Rust toolchain
-        uses: actions-rs/toolchain@v1
-        with:
-          toolchain: stable
-          profile: minimal
-          target: x86_64-unknown-linux-musl
-
-      - id: cargo-cache
-        name: Cache
-        uses: Swatinem/rust-cache@v1
-        with:
-          key: release-azure-function
-
-      - name: Setup | musl tools
-        run: sudo apt install -y musl-tools
-
-      - name: Build | Build
-        run: cargo build --release --target x86_64-unknown-linux-musl
-
-      - name: Deploy | Move binary
-        run: mv ./target/x86_64-unknown-linux-musl/release/handler .
-
-      - name: Deploy | Compress deploy package
-        run: zip -r deploy.zip handler ${{ secrets.END_POINT }}  host.json
-
-      - name: Deploy | Authenticate
-        uses: azure/login@v1
-        with:
-          creds: ${{ secrets.AZURE_CREDENTIALS }}
-
-      - name: Deploy | Azure Function
-        run: az functionapp deployment source config-zip -g ${{ secrets.AZURE_RESOURCE_GROUP }} -n ${{ secrets.AZURE_APP_NAME }} --src deploy.zip
-
-  test_deployment:
-    needs: release
-    name: Test
-    runs-on: ubuntu-20.04
-    steps:
-      - name: Deplopy Test | Get current date
-        id: date
-        run: echo "::set-output name=date::$(date +'%Y-%m-%d')"
-
-      - name: Deploy Test | Make POST Request
-        id: httpPostTest
-        uses: fjogeleit/http-request-action@v1
-        with:
-          method: POST
-          url: "https://${{ secrets.AZURE_APP_NAME }}.azurewebsites.net/api/booking"
-          customHeaders: '{"Content-Type": "application/json"}'
-          data: '{"person": "test", "date": "${{ steps.date.outputs.date }}"}'
-
-      - name: Deploy Test | Make GET Request
-        id: httpGetTest
-        uses: fjogeleit/http-request-action@v1
-        with:
-          method: GET
-          url: "https://${{ secrets.AZURE_APP_NAME }}.azurewebsites.net/api/booking?weeks=50"
-
-      - name: Deploy Test | Make DELETE Request
-        id: httpDeleteTest
-        uses: fjogeleit/http-request-action@v1
-        with:
-          method: DELETE
-          url: "https://${{ secrets.AZURE_APP_NAME }}.azurewebsites.net/api/booking"
-          customHeaders: '{"Content-Type": "application/json"}'
-          data: '{"person": "test", "date": "${{ steps.date.outputs.date }}"}'
-
-      - name: Deploy Test | Show Response
-        run: |
-          echo ${{ steps.httpPostTest.outputs.response }}
-          echo ${{ steps.httpGetTest.outputs.response }}
-          echo ${{ steps.httpDeleteTest.outputs.response }}

@@ -1,16 +1,15 @@
 use async_trait::async_trait;
 use chrono::DateTime;
 use chrono::Utc;
-use reqwest::StatusCode;
 use postgrest::Postgrest;
+use reqwest::StatusCode;
 
 use crate::models::constants::*;
 use crate::models::database::*;
 use crate::models::interfaces::*;
 
 #[derive(Clone)]
-pub struct SupabaseDb {
-}
+pub struct SupabaseDb {}
 
 #[async_trait]
 impl Database for SupabaseDb {
@@ -20,13 +19,8 @@ impl Database for SupabaseDb {
             Err(err) => return Err(err),
         };
 
-        let database_table_name = match database_table_name() {
-            Ok(res) => res,
-            Err(err) => return Err(err.to_string()),
-        };
-
         let resp = match client
-            .from(database_table_name)
+            .from("Bookings")
             .delete()
             .eq("date", entry_id)
             .execute()
@@ -50,13 +44,8 @@ impl Database for SupabaseDb {
             Err(err) => return Err(err.to_string()),
         };
 
-        let database_table_name = match database_table_name() {
-            Ok(res) => res,
-            Err(err) => return Err(err.to_string()),
-        };
-
         let resp = match client
-            .from(database_table_name)
+            .from("Bookings")
             .insert(format!("[{}]", serialised_entry))
             .execute()
             .await
@@ -66,7 +55,6 @@ impl Database for SupabaseDb {
         };
 
         return Ok(resp.status());
-
     }
 
     async fn get_entries(&self, from: DateTime<Utc>, to: DateTime<Utc>) -> Result<String, String> {
@@ -75,13 +63,8 @@ impl Database for SupabaseDb {
             Err(err) => return Err(err),
         };
 
-        let database_table_name = match database_table_name() {
-            Ok(res) => res,
-            Err(err) => return Err(err.to_string()),
-        };
-
         let resp = match client
-            .from(database_table_name)
+            .from("Bookings")
             .select("date, person")
             .gte("date", from.format("%Y-%m-%d").to_string())
             .lte("date", to.format("%Y-%m-%d").to_string())
